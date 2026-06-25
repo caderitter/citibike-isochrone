@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
       maplibre-gl:
         specifier: ^5.24.0
         version: 5.24.0
