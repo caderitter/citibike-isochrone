@@ -1,4 +1,4 @@
-import Map, { Layer, Source, useMap, type CircleLayerSpecification, type MapLayerMouseEvent, type MapRef } from 'react-map-gl/maplibre';
+import Map, { Layer, Source, type CircleLayerSpecification, type MapLayerMouseEvent, type MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './App.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -8,7 +8,7 @@ const CITIBIKE_STATIONS_SOURCE_ID = 'citibike-stations-source';
 const CITIBIKE_STATIONS_LAYER_ID = 'citibike-stations-layer';
 const CITIBIKE_GEOJSON_STATION_ID_KEY = 'station_id';
 
-const citibikeStationLayerStyle: CircleLayerSpecification = {
+const CITIBIKE_STATIONS_LAYER_STYLE: CircleLayerSpecification = {
   id: CITIBIKE_STATIONS_LAYER_ID,
   source: CITIBIKE_STATIONS_SOURCE_ID,
   type: 'circle',
@@ -17,6 +17,9 @@ const citibikeStationLayerStyle: CircleLayerSpecification = {
     'circle-color': '#007cbf'
   }
 };
+
+const MAP_STYLE_URL = `https://api.maptiler.com/maps/dataviz-v4/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
+
 
 export function App() {
   const [citibikeGeoJson, setCitibikeGeoJson] = useState<FeatureCollection>();
@@ -72,7 +75,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/geojson').then(res => res.json()).then(json => setCitibikeGeoJson(json));
+    fetch(`${import.meta.env.VITE_SERVER_URL}/geojson`).then(res => res.json()).then(json => setCitibikeGeoJson(json));
   }, []);
 
   return (
@@ -92,7 +95,7 @@ export function App() {
         width: '100%',
         height: '100%'
       }}
-      mapStyle="https://api.maptiler.com/maps/dataviz-v4/style.json?key=O4SIJKy0mkCeNgNS0Nic"
+      mapStyle={MAP_STYLE_URL}
       onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseLeave}
@@ -100,7 +103,7 @@ export function App() {
     >
       {citibikeGeoJson && (
         <Source id={CITIBIKE_STATIONS_SOURCE_ID} type="geojson" data={citibikeGeoJson} promoteId={CITIBIKE_GEOJSON_STATION_ID_KEY}>
-          <Layer {...citibikeStationLayerStyle}/>
+          <Layer {...CITIBIKE_STATIONS_LAYER_STYLE}/>
         </Source>
       )}
     </Map>
