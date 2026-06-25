@@ -5,7 +5,7 @@ services:
     build:
       context: .
     volumes:
-      - ${PWD}/tiles.tar:/data/valhalla/tiles.tar
+      - ./valhalla/tiles.tar:/data/valhalla/tiles.tar
     environment:
       TILE_PATH: /data/valhalla/tiles.tar
     ports:
