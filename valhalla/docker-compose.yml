@@ -1,11 +1,12 @@
 services:
   valhalla:
     init: true
+    privileged: true
     restart: always
     build:
       context: .
     volumes:
-      - ./valhalla/tiles.tar:/data/valhalla/tiles.tar
+      - ./valhalla/:/data/valhalla/
     environment:
       TILE_PATH: /data/valhalla/tiles.tar
     ports:

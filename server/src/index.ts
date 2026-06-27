@@ -2,12 +2,17 @@ import express, { Request } from 'express';
 import cors from 'cors';
 import path from 'node:path';
 
+const CITIBIKE_PRICE_PER_MIN = 0.27;
+const SUBWAY_FARE = 3.00;
+const RIDE_LENGTH_AT_SUBWAY_COST = SUBWAY_FARE / CITIBIKE_PRICE_PER_MIN;
+const MAX_RIDE_TIME = 45.0;
+
 const app = express();
 
 app.use(cors());
 
 app.get('/geojson', (_req, res) => {
-  const filePath = path.join(__dirname, 'data', 'citibike.geojson');
+  const filePath = path.join(import.meta.dirname, '..', 'data', 'citibike.geojson');
 
   res.sendFile(filePath, {
     maxAge: 3600000,
@@ -16,16 +21,27 @@ app.get('/geojson', (_req, res) => {
 });
 
 app.post('/isochrone', async (req: Request, res) => {
-  const { lat, lon, costing } = req.params;
+  const { lat, lon, costing } = req.query;
   const requestObj = {
     locations: [{ lat, lon }],
     costing,
     contours: [
       {
-          "time": 15.0,
-          "color": "ff0000"
+          "time": MAX_RIDE_TIME,
+          "color": "0000ff"
+      },
+      {
+        "time": RIDE_LENGTH_AT_SUBWAY_COST,
+        "color": "ff0000"
       }
-    ]
+    ],
+    polygons: true,
+    costing_options: {
+      bicycle: {
+        bicycle_type: "Hybrid",
+        cycling_speed: 17,
+      }
+    },
   };
 
   const queryParams = new URLSearchParams({
@@ -43,4 +59,4 @@ app.post('/isochrone', async (req: Request, res) => {
   res.json(isochroneGeojson);
 });
 
-app.listen(5000);
+app.listen(5001);

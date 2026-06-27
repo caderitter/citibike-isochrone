@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+valhalla/valhalla
+valhalla/valhalla_tiles
+valhalla/area.osm
+valhalla/valhalla.json
