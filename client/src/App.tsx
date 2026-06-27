@@ -29,8 +29,13 @@ export function App() {
   const handleClick = useCallback((event: MapLayerMouseEvent) => {
     const feature = event.features?.[0];
 
-    if (feature) {
-      console.log(feature.geometry);
+    if (feature && feature.geometry.type === 'Point') {
+      const query = new URLSearchParams({
+        lat: feature.geometry.coordinates[0].toString(),
+        lon: feature.geometry.coordinates[1].toString(),
+        costing: 'bicycle',
+      });
+      fetch(`${import.meta.env.VITE_SERVER_ENDPOINT}/isochrone?${query}`, { method: 'POST' })
     }
   }, []);
 
@@ -75,7 +80,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_SERVER_URL}/geojson`).then(res => res.json()).then(json => setCitibikeGeoJson(json));
+    fetch(`${import.meta.env.VITE_SERVER_ENDPOINT}/geojson`, { mode: 'cors'}).then(res => res.json()).then(json => setCitibikeGeoJson(json));
   }, []);
 
   return (
