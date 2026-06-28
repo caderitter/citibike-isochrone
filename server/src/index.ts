@@ -15,7 +15,7 @@ app.get('/geojson', (_req, res) => {
   const filePath = path.join(import.meta.dirname, '..', 'data', 'citibike.geojson');
 
   res.sendFile(filePath, {
-    maxAge: 3600000,
+    maxAge: '1d',
     immutable: true
   });
 });
