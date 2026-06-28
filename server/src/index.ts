@@ -21,10 +21,10 @@ app.get("/geojson", (_req, res) => {
 });
 
 app.post("/isochrone", async (req: Request, res) => {
-  const { lat, lon, costing } = req.query;
+  const { lat, lon } = req.query;
   const requestObj = {
     locations: [{ lat, lon }],
-    costing,
+    costing: "bicycle",
     contours: [
       {
         time: MAX_RIDE_TIME,

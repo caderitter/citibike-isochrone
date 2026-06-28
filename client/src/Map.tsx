@@ -94,7 +94,7 @@ export function Map({
       id: CURRENT_PRICE_ISOCHRONE_LAYER_ID,
       source: CURRENT_PRICE_ISOCHRONE_SOURCE_ID,
       layout: {
-        visibility: step === 1 ? "visible" : "none",
+        visibility: (step === 1 || step === 2) ? "visible" : "none",
       },
       ...SHARED_ISOCHRONE_STYLE,
     }),
@@ -135,7 +135,6 @@ export function Map({
         const query = new URLSearchParams({
           lat: feature.geometry.coordinates[1].toString(),
           lon: feature.geometry.coordinates[0].toString(),
-          costing: "bicycle",
         });
         const res = await fetch(`${import.meta.env.VITE_SERVER_ENDPOINT}/isochrone?${query}`, {
           method: "POST",
