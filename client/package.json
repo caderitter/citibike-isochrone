@@ -11,6 +11,7 @@
     "fmt": "oxfmt"
   },
   "dependencies": {
+    "@turf/bbox": "^7.3.5",
     "@turf/concave": "^7.3.5",
     "@turf/convex": "^7.3.5",
     "@turf/helpers": "^7.3.5",

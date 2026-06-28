@@ -12,6 +12,8 @@ import bikePng from "./assets/icon-park-outline--bike.png";
 import type { MapLibreEvent, SymbolLayerSpecification } from "maplibre-gl";
 import { hullFromStations, clipAllContours } from "./geoHelpers";
 import { MAX_RIDE_TIME, RIDE_LENGTH_AT_SUBWAY_COST } from "./constants";
+import bbox from "@turf/bbox";
+import type { Step } from "./App";
 
 const CITIBIKE_ICON_IMAGE = "citibike-icon";
 
@@ -48,23 +50,11 @@ const SHARED_ISOCHRONE_STYLE: Pick<FillLayerSpecification, "type" | "paint"> = {
   },
 };
 
-const CURRENT_PRICE_ISOCHRONE_LAYER_STYLE: FillLayerSpecification = {
-  id: CURRENT_PRICE_ISOCHRONE_LAYER_ID,
-  source: CURRENT_PRICE_ISOCHRONE_SOURCE_ID,
-  ...SHARED_ISOCHRONE_STYLE,
-};
-
-const PROPOSAL_PRICE_ISOCHRONE_LAYER_STYLE: FillLayerSpecification = {
-  id: PROPOSAL_PRICE_ISOCHRONE_LAYER_ID,
-  source: PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID,
-  ...SHARED_ISOCHRONE_STYLE,
-}
-
 const CLIP_TO_EXISTING_STATIONS = true;
 
 const MAP_STYLE_URL = `https://api.maptiler.com/maps/dataviz-v4/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
-export function Map() {
+export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => void }) {
   const [citibikeGeoJson, setCitibikeGeoJson] = useState<FeatureCollection<Point>>();
   const [selectedStationGeoJson, setSelectedStationGeoJson] = useState<Feature<Point>>();
   const [isochroneGeoJson, setIsochroneGeoJson] =
@@ -89,6 +79,24 @@ export function Map() {
       "visibility": selectedStationGeoJson ? 'none' : 'visible'
     },
   }), [selectedStationGeoJson]);
+
+  const currentPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(() => ({
+    id: CURRENT_PRICE_ISOCHRONE_LAYER_ID,
+    source: CURRENT_PRICE_ISOCHRONE_SOURCE_ID,
+    layout: {
+      visibility: step === 1 ? 'visible' : 'none',
+    },
+    ...SHARED_ISOCHRONE_STYLE,
+  }), [step]);
+
+  const proposalPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(() => ({
+    id: PROPOSAL_PRICE_ISOCHRONE_LAYER_ID,
+    source: PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID,
+    layout: {
+      visibility: step === 2 ? 'visible' : 'none',
+    },
+    ...SHARED_ISOCHRONE_STYLE,
+  }), [step]);
 
   const [currentPriceIsochroneGeojson, proposalPriceIsochroneGeojson] = useMemo(() => {
     if (isochroneGeoJson) {
@@ -128,6 +136,8 @@ export function Map() {
         } else {
           setIsochroneGeoJson(featureCollection);
         }
+
+        setStep(1);
       }
     },
     [citibikeGeoJson],
@@ -192,6 +202,20 @@ export function Map() {
     fetchGeojson();
   }, []);
 
+  useEffect(() => {
+    if (currentPriceIsochroneGeojson && step === 1) {
+      const [minLon, minLat, maxLon, maxLat] = bbox(currentPriceIsochroneGeojson)
+      mapRef.current?.fitBounds([[minLon, minLat], [maxLon, maxLat]], { padding: 40, duration: 2000 })
+    }
+  }, [currentPriceIsochroneGeojson, step]);
+
+  useEffect(() => {
+    if (proposalPriceIsochroneGeojson && step === 2) {
+      const [minLon, minLat, maxLon, maxLat] = bbox(proposalPriceIsochroneGeojson)
+      mapRef.current?.fitBounds([[minLon, minLat], [maxLon, maxLat]], { padding: 40, duration: 2000 })
+    }
+  }, [currentPriceIsochroneGeojson, step]);
+
   return (
     <MaplibreMap
       ref={mapRef}
@@ -220,12 +244,12 @@ export function Map() {
     >
       {currentPriceIsochroneGeojson && (
         <Source id={CURRENT_PRICE_ISOCHRONE_SOURCE_ID} type="geojson" data={currentPriceIsochroneGeojson}>
-          <Layer {...CURRENT_PRICE_ISOCHRONE_LAYER_STYLE} beforeId={CITIBIKE_STATIONS_ICON_LAYER_ID} />
+          <Layer {...currentPriceIsochroneLayerStyle} beforeId={CITIBIKE_STATIONS_ICON_LAYER_ID} />
         </Source>
       )}
       {proposalPriceIsochroneGeojson && (
         <Source id={PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID} type="geojson" data={proposalPriceIsochroneGeojson}>
-          <Layer {...PROPOSAL_PRICE_ISOCHRONE_LAYER_STYLE} beforeId={CITIBIKE_STATIONS_ICON_LAYER_ID} />
+          <Layer {...proposalPriceIsochroneLayerStyle} beforeId={CITIBIKE_STATIONS_ICON_LAYER_ID} />
         </Source>
       )}
       {citibikeGeoJson && (
