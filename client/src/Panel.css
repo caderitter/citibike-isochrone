@@ -8,11 +8,37 @@
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
   border-radius: 5px;
+  max-width: 300px;
+  text-align: left;
+}
+
+.content {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  text-align: left;
-  max-width: 300px;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: white;
+  animation: fadeIn 0.3s ease-in-out forwards; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .button {

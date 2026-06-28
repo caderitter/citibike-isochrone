@@ -1,5 +1,6 @@
 import MaplibreMap, {
   Layer,
+  Popup,
   Source,
   type FillLayerSpecification,
   type MapLayerMouseEvent,
@@ -56,17 +57,19 @@ export function Map({
   step,
   setStep,
   limitToStations,
+  setLoading,
 }: {
   step: Step;
   setStep: (step: Step) => void;
   limitToStations: boolean;
+  setLoading: (loading: boolean) => void;
 }) {
   const [citibikeGeoJson, setCitibikeGeoJson] = useState<FeatureCollection<Point>>();
   const [selectedStationGeoJson, setSelectedStationGeoJson] = useState<Feature<Point>>();
   const [isochroneGeoJson, setIsochroneGeoJson] =
     useState<FeatureCollection<Polygon | MultiPolygon>>();
+  const [hoverInfo, setHoverInfo] = useState<{ lat: number, lon: number, text: string }>();
   const mapRef = useRef<MapRef>(null);
-  const hoveredFeatureIdRef = useRef<string | number>(null);
 
   const stationHull = useMemo(() => {
     if (citibikeGeoJson) {
@@ -136,6 +139,7 @@ export function Map({
           lat: feature.geometry.coordinates[1].toString(),
           lon: feature.geometry.coordinates[0].toString(),
         });
+        setLoading(true);
         const res = await fetch(`${import.meta.env.VITE_SERVER_ENDPOINT}/isochrone?${query}`, {
           method: "POST",
         });
@@ -147,6 +151,7 @@ export function Map({
           setIsochroneGeoJson(featureCollection);
         }
 
+        setLoading(false);
         setStep(1);
         setSelectedStationGeoJson({
           type: "Feature",
@@ -156,47 +161,28 @@ export function Map({
           },
           properties: { ...feature.properties },
         });
+        
       }
     },
     [citibikeGeoJson, limitToStations],
   );
 
   const handleMouseMove = useCallback((event: MapLayerMouseEvent) => {
-    const map = mapRef?.current?.getMap();
-    if (!map) return;
-
-    const feature = event.features?.[0];
-
-    if (hoveredFeatureIdRef.current !== null) {
-      map.setFeatureState(
-        { source: CITIBIKE_STATIONS_SOURCE_ID, id: hoveredFeatureIdRef.current },
-        { hover: false },
-      );
-    }
-
-    if (feature?.id !== undefined) {
-      map.setFeatureState({ source: CITIBIKE_STATIONS_SOURCE_ID, id: feature.id }, { hover: true });
-      hoveredFeatureIdRef.current = feature.id;
-      map.getCanvas().style.cursor = "pointer";
+    const feature = event.features?.[0] as Feature<Point>;
+    if (feature && mapRef.current && mapRef.current.getZoom() > 13) {
+      mapRef.current.getCanvas().style.cursor = "pointer";
+      setHoverInfo({
+        lat: feature.geometry.coordinates[1],
+        lon: feature.geometry.coordinates[0],
+        text: feature.properties?.name
+      });
     } else {
-      hoveredFeatureIdRef.current = null;
-      map.getCanvas().style.cursor = "";
-    }
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-
-    if (hoveredFeatureIdRef.current !== null) {
-      map.setFeatureState(
-        { source: CITIBIKE_STATIONS_SOURCE_ID, id: hoveredFeatureIdRef.current },
-        { hover: false },
-      );
-      hoveredFeatureIdRef.current = null;
-    }
-    map.getCanvas().style.cursor = "";
-  }, []);
+      if (mapRef.current) {
+        mapRef.current.getCanvas().style.cursor = "";
+      }
+      setHoverInfo(undefined)
+    };
+  }, [mapRef]);
 
   const handleMapLoad = useCallback(async (event: MapLibreEvent) => {
     const map = event.target;
@@ -273,7 +259,6 @@ export function Map({
       mapStyle={MAP_STYLE_URL}
       onClick={handleClick}
       onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseLeave}
       onLoad={handleMapLoad}
       interactiveLayerIds={[CITIBIKE_STATIONS_ICON_LAYER_ID]}
     >
@@ -309,6 +294,18 @@ export function Map({
         <Source id={SELECTED_STATION_SOURCE_ID} type="geojson" data={selectedStationGeoJson}>
           <Layer {...SELECTED_STATION_ICON_LAYER_STYLE} />
         </Source>
+      )}
+      {hoverInfo && (
+        <Popup
+          longitude={hoverInfo.lon}
+          latitude={hoverInfo.lat}
+          closeButton={false}
+          closeOnClick={false}
+          anchor="bottom"
+          offset={[0, -12]}
+        >
+          {hoverInfo.text}
+        </Popup>
       )}
     </MaplibreMap>
   );

@@ -1,28 +1,37 @@
 import type { Step } from "./App";
 import InfoTooltip from "./InfoTooltip";
 import "./Panel.css";
+import "./loader.css";
 
 export function Panel({
   step,
   setStep,
   limitToStations,
   setLimitToStations,
+  loading,
 }: {
   step: Step;
   setStep: (step: Step) => void;
   limitToStations: boolean;
   setLimitToStations: (val: boolean) => void;
+  loading: boolean;
 }) {
   return (
     <div className="panel">
       <h2>Citibike accessibility</h2>
+      <div className="content">
+      {loading && (
+        <div className="loadingOverlay">
+          <span className="loader" />
+        </div>
+      )}
       {step === 0 && (
         <>
           <p>
-            Use this tool to see how far you can get with <strong>$3</strong> on an Citibike E-bike
+            Use this tool to see how far you can get with <strong>$3</strong> on a Citibike E-bike
             with a membership.
           </p>
-          <p>To get started, find your local station and click on it.</p>
+          <p>To get started, zoom in to find your local station and click on it.</p>
           <div>
             <input
               id="limitToStations"
@@ -64,6 +73,7 @@ export function Panel({
           </button>
         </>
       )}
+    </div>
     </div>
   );
 }

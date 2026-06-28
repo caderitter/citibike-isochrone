@@ -19,7 +19,7 @@
   background: var(--bg);
   color: var(--text);
   text-align: center;
-  padding: 6px 10px;
+  padding: 5px;
   border: 1px solid var(--border);
   border-radius: 5px;
   box-shadow: var(--shadow);
@@ -30,6 +30,7 @@
   transition: opacity 0.2s ease-in-out;
   max-width: 400px;
   width: max-content;
+  line-height: 20px;
 }
 
 .tooltipText::after {

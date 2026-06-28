@@ -7,6 +7,7 @@ export type Step = 0 | 1 | 2;
 export function App() {
   const [step, setStep] = useState<Step>(0);
   const [limitToStations, setLimitToStations] = useState(true);
+  const [loading, setLoading] = useState(false);
   return (
     <>
       <Panel
@@ -14,8 +15,9 @@ export function App() {
         setStep={setStep}
         limitToStations={limitToStations}
         setLimitToStations={setLimitToStations}
+        loading={loading}
       />
-      <Map step={step} setStep={setStep} limitToStations={limitToStations} />
+      <Map step={step} setStep={setStep} limitToStations={limitToStations} setLoading={setLoading}/>
     </>
   );
 }
