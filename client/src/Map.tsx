@@ -68,40 +68,53 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
     }
   }, [citibikeGeoJson]);
 
-  const citibikeStationsIconLayerStyle: SymbolLayerSpecification = useMemo(() => ({
-    id: CITIBIKE_STATIONS_ICON_LAYER_ID,
-    source: CITIBIKE_STATIONS_SOURCE_ID,
-    type: "symbol",
-    layout: {
-      "icon-image": CITIBIKE_ICON_IMAGE,
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.08, 20, 0.4],
-      "icon-allow-overlap": true,
-      "visibility": selectedStationGeoJson ? 'none' : 'visible'
-    },
-  }), [selectedStationGeoJson]);
+  const citibikeStationsIconLayerStyle: SymbolLayerSpecification = useMemo(
+    () => ({
+      id: CITIBIKE_STATIONS_ICON_LAYER_ID,
+      source: CITIBIKE_STATIONS_SOURCE_ID,
+      type: "symbol",
+      layout: {
+        "icon-image": CITIBIKE_ICON_IMAGE,
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.08, 20, 0.4],
+        "icon-allow-overlap": true,
+        visibility: selectedStationGeoJson ? "none" : "visible",
+      },
+    }),
+    [selectedStationGeoJson],
+  );
 
-  const currentPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(() => ({
-    id: CURRENT_PRICE_ISOCHRONE_LAYER_ID,
-    source: CURRENT_PRICE_ISOCHRONE_SOURCE_ID,
-    layout: {
-      visibility: step === 1 ? 'visible' : 'none',
-    },
-    ...SHARED_ISOCHRONE_STYLE,
-  }), [step]);
+  const currentPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(
+    () => ({
+      id: CURRENT_PRICE_ISOCHRONE_LAYER_ID,
+      source: CURRENT_PRICE_ISOCHRONE_SOURCE_ID,
+      layout: {
+        visibility: step === 1 ? "visible" : "none",
+      },
+      ...SHARED_ISOCHRONE_STYLE,
+    }),
+    [step],
+  );
 
-  const proposalPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(() => ({
-    id: PROPOSAL_PRICE_ISOCHRONE_LAYER_ID,
-    source: PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID,
-    layout: {
-      visibility: step === 2 ? 'visible' : 'none',
-    },
-    ...SHARED_ISOCHRONE_STYLE,
-  }), [step]);
+  const proposalPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(
+    () => ({
+      id: PROPOSAL_PRICE_ISOCHRONE_LAYER_ID,
+      source: PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID,
+      layout: {
+        visibility: step === 2 ? "visible" : "none",
+      },
+      ...SHARED_ISOCHRONE_STYLE,
+    }),
+    [step],
+  );
 
   const [currentPriceIsochroneGeojson, proposalPriceIsochroneGeojson] = useMemo(() => {
     if (isochroneGeoJson) {
-      const current = isochroneGeoJson.features.find(f => f?.properties?.contour === RIDE_LENGTH_AT_SUBWAY_COST);
-      const proposal = isochroneGeoJson.features.find(f => f?.properties?.contour === MAX_RIDE_TIME);
+      const current = isochroneGeoJson.features.find(
+        (f) => f?.properties?.contour === RIDE_LENGTH_AT_SUBWAY_COST,
+      );
+      const proposal = isochroneGeoJson.features.find(
+        (f) => f?.properties?.contour === MAX_RIDE_TIME,
+      );
       return [current, proposal];
     } else {
       return [undefined, undefined];
@@ -112,12 +125,12 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
     async (event: MapLayerMouseEvent) => {
       const feature = event.features?.[0] as Feature<Point>;
       setSelectedStationGeoJson({
-        type: 'Feature',
+        type: "Feature",
         geometry: {
-          type: 'Point',
-          coordinates: feature.geometry.coordinates
+          type: "Point",
+          coordinates: feature.geometry.coordinates,
         },
-        properties: { ...feature.properties }
+        properties: { ...feature.properties },
       });
 
       if (feature) {
@@ -204,15 +217,27 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
 
   useEffect(() => {
     if (currentPriceIsochroneGeojson && step === 1) {
-      const [minLon, minLat, maxLon, maxLat] = bbox(currentPriceIsochroneGeojson)
-      mapRef.current?.fitBounds([[minLon, minLat], [maxLon, maxLat]], { padding: 40, duration: 2000 })
+      const [minLon, minLat, maxLon, maxLat] = bbox(currentPriceIsochroneGeojson);
+      mapRef.current?.fitBounds(
+        [
+          [minLon, minLat],
+          [maxLon, maxLat],
+        ],
+        { padding: 40, duration: 2000 },
+      );
     }
   }, [currentPriceIsochroneGeojson, step]);
 
   useEffect(() => {
     if (proposalPriceIsochroneGeojson && step === 2) {
-      const [minLon, minLat, maxLon, maxLat] = bbox(proposalPriceIsochroneGeojson)
-      mapRef.current?.fitBounds([[minLon, minLat], [maxLon, maxLat]], { padding: 40, duration: 2000 })
+      const [minLon, minLat, maxLon, maxLat] = bbox(proposalPriceIsochroneGeojson);
+      mapRef.current?.fitBounds(
+        [
+          [minLon, minLat],
+          [maxLon, maxLat],
+        ],
+        { padding: 40, duration: 2000 },
+      );
     }
   }, [currentPriceIsochroneGeojson, step]);
 
@@ -243,12 +268,20 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
       interactiveLayerIds={[CITIBIKE_STATIONS_ICON_LAYER_ID]}
     >
       {currentPriceIsochroneGeojson && (
-        <Source id={CURRENT_PRICE_ISOCHRONE_SOURCE_ID} type="geojson" data={currentPriceIsochroneGeojson}>
+        <Source
+          id={CURRENT_PRICE_ISOCHRONE_SOURCE_ID}
+          type="geojson"
+          data={currentPriceIsochroneGeojson}
+        >
           <Layer {...currentPriceIsochroneLayerStyle} beforeId={CITIBIKE_STATIONS_ICON_LAYER_ID} />
         </Source>
       )}
       {proposalPriceIsochroneGeojson && (
-        <Source id={PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID} type="geojson" data={proposalPriceIsochroneGeojson}>
+        <Source
+          id={PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID}
+          type="geojson"
+          data={proposalPriceIsochroneGeojson}
+        >
           <Layer {...proposalPriceIsochroneLayerStyle} beforeId={CITIBIKE_STATIONS_ICON_LAYER_ID} />
         </Source>
       )}

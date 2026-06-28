@@ -1,4 +1,4 @@
 const CITIBIKE_PRICE_PER_MIN = 0.27;
-const SUBWAY_FARE = 3.00;
+const SUBWAY_FARE = 3.0;
 export const RIDE_LENGTH_AT_SUBWAY_COST = Number((SUBWAY_FARE / CITIBIKE_PRICE_PER_MIN).toFixed(2));
 export const MAX_RIDE_TIME = 45.0;

@@ -9,7 +9,7 @@ export function App() {
   return (
     <>
       <Panel step={step} setStep={setStep} />
-      <Map step={step} setStep={setStep}/>
+      <Map step={step} setStep={setStep} />
     </>
   );
 }
