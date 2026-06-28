@@ -124,14 +124,6 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
   const handleClick = useCallback(
     async (event: MapLayerMouseEvent) => {
       const feature = event.features?.[0] as Feature<Point>;
-      setSelectedStationGeoJson({
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: feature.geometry.coordinates,
-        },
-        properties: { ...feature.properties },
-      });
 
       if (feature) {
         const query = new URLSearchParams({
@@ -151,6 +143,14 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
         }
 
         setStep(1);
+        setSelectedStationGeoJson({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: feature.geometry.coordinates,
+          },
+          properties: { ...feature.properties },
+        });
       }
     },
     [citibikeGeoJson],
@@ -240,6 +240,11 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
       );
     }
   }, [currentPriceIsochroneGeojson, step]);
+
+  // if we've gone back to step 0, clear the selected station
+  if (step === 0 && selectedStationGeoJson) {
+    setSelectedStationGeoJson(undefined);
+  }
 
   return (
     <MaplibreMap
