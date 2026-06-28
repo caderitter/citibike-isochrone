@@ -50,11 +50,17 @@ const SHARED_ISOCHRONE_STYLE: Pick<FillLayerSpecification, "type" | "paint"> = {
   },
 };
 
-const CLIP_TO_EXISTING_STATIONS = true;
-
 const MAP_STYLE_URL = `https://api.maptiler.com/maps/dataviz-v4/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
-export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => void }) {
+export function Map({
+  step,
+  setStep,
+  limitToStations,
+}: {
+  step: Step;
+  setStep: (step: Step) => void;
+  limitToStations: boolean;
+}) {
   const [citibikeGeoJson, setCitibikeGeoJson] = useState<FeatureCollection<Point>>();
   const [selectedStationGeoJson, setSelectedStationGeoJson] = useState<Feature<Point>>();
   const [isochroneGeoJson, setIsochroneGeoJson] =
@@ -135,7 +141,7 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
           method: "POST",
         });
         const featureCollection = await res.json();
-        if (CLIP_TO_EXISTING_STATIONS) {
+        if (limitToStations) {
           const clippedIsochrone = clipAllContours(featureCollection, stationHull!);
           setIsochroneGeoJson(clippedIsochrone);
         } else {
@@ -153,7 +159,7 @@ export function Map({ step, setStep }: { step: Step; setStep: (step: Step) => vo
         });
       }
     },
-    [citibikeGeoJson],
+    [citibikeGeoJson, limitToStations],
   );
 
   const handleMouseMove = useCallback((event: MapLayerMouseEvent) => {
