@@ -1,23 +1,13 @@
-import { useState } from "react";
+import { Provider } from "react-redux";
 import { Map } from "./Map";
 import { Panel } from "./Panel";
-
-export type Step = 0 | 1 | 2;
+import { store } from "./redux/store";
 
 export function App() {
-  const [step, setStep] = useState<Step>(0);
-  const [limitToStations, setLimitToStations] = useState(true);
-  const [loading, setLoading] = useState(false);
   return (
-    <>
-      <Panel
-        step={step}
-        setStep={setStep}
-        limitToStations={limitToStations}
-        setLimitToStations={setLimitToStations}
-        loading={loading}
-      />
-      <Map step={step} setStep={setStep} limitToStations={limitToStations} setLoading={setLoading}/>
-    </>
+    <Provider store={store}>
+      <Panel />
+      <Map />
+    </Provider>
   );
 }
