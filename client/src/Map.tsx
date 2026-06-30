@@ -147,7 +147,7 @@ export function Map({
         const res = await fetch(`${import.meta.env.VITE_SERVER_ENDPOINT}/isochrone?${query}`, {
           method: "POST",
         });
-        const featureCollection = await res.json();
+        const featureCollection = await res.json() as FeatureCollection<Polygon>;
         if (limitToStations) {
           const clippedIsochrone = clipAllContours(featureCollection, stationHull!);
           setIsochroneGeoJson(clippedIsochrone);
