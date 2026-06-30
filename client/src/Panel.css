@@ -26,7 +26,7 @@
   bottom: 0;
   right: 0;
   background: white;
-  animation: fadeIn 0.3s ease-in-out forwards; 
+  animation: fadeIn 0.3s ease-in-out forwards;
   display: flex;
   align-items: center;
   justify-content: center;
