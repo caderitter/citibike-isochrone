@@ -96,10 +96,12 @@ export function Map({
     () => ({
       id: CURRENT_PRICE_ISOCHRONE_LAYER_ID,
       source: CURRENT_PRICE_ISOCHRONE_SOURCE_ID,
-      layout: {
-        visibility: (step === 1 || step === 2) ? "visible" : "none",
-      },
       ...SHARED_ISOCHRONE_STYLE,
+      paint: {
+        ...SHARED_ISOCHRONE_STYLE.paint,
+        "fill-opacity": (step === 1 || step === 2) ? 0.3 : 0,
+        "fill-opacity-transition": { duration: 750 },
+      }
     }),
     [step],
   );
@@ -108,10 +110,12 @@ export function Map({
     () => ({
       id: PROPOSAL_PRICE_ISOCHRONE_LAYER_ID,
       source: PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID,
-      layout: {
-        visibility: step === 2 ? "visible" : "none",
-      },
       ...SHARED_ISOCHRONE_STYLE,
+      paint: {
+        ...SHARED_ISOCHRONE_STYLE.paint,
+        "fill-opacity": step === 2 ? 0.3 : 0,
+        "fill-opacity-transition": { duration: 750 },
+      }
     }),
     [step],
   );
@@ -169,13 +173,16 @@ export function Map({
 
   const handleMouseMove = useCallback((event: MapLayerMouseEvent) => {
     const feature = event.features?.[0] as Feature<Point>;
-    if (feature && mapRef.current && mapRef.current.getZoom() > 13) {
+    if (feature && mapRef.current) {
       mapRef.current.getCanvas().style.cursor = "pointer";
-      setHoverInfo({
+      // only show station names on hover when zoomed in
+      if (mapRef.current.getZoom() > 13) {
+        setHoverInfo({
         lat: feature.geometry.coordinates[1],
-        lon: feature.geometry.coordinates[0],
-        text: feature.properties?.name
-      });
+          lon: feature.geometry.coordinates[0],
+          text: feature.properties?.name
+        });
+      }
     } else {
       if (mapRef.current) {
         mapRef.current.getCanvas().style.cursor = "";
@@ -214,7 +221,7 @@ export function Map({
           [minLon, minLat],
           [maxLon, maxLat],
         ],
-        { padding: 40, duration: 2000 },
+        { padding: 40, duration: 1500 },
       );
     }
   }, [currentPriceIsochroneGeojson, step]);
@@ -227,7 +234,7 @@ export function Map({
           [minLon, minLat],
           [maxLon, maxLat],
         ],
-        { padding: 40, duration: 2000 },
+        { padding: 40, duration: 1500 },
       );
     }
   }, [currentPriceIsochroneGeojson, step]);
@@ -241,9 +248,9 @@ export function Map({
     <MaplibreMap
       ref={mapRef}
       initialViewState={{
-        latitude: 40.7128,
-        longitude: -74.006,
-        zoom: 10,
+        latitude: 40.760,
+        longitude: -73.922,
+        zoom: 10.5,
       }}
       style={{
         position: "absolute",
@@ -304,7 +311,8 @@ export function Map({
           anchor="bottom"
           offset={[0, -12]}
         >
-          {hoverInfo.text}
+          <strong>{hoverInfo.text}</strong>
+          <p>Click to use this station</p>
         </Popup>
       )}
     </MaplibreMap>
