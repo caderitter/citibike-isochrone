@@ -4,6 +4,7 @@ import InfoTooltip from "./InfoTooltip";
 import "./Panel.css";
 import "./loader.css";
 import { setLimitToStations, setStep } from "./redux/uiSlice";
+import { setSelectedStationGeojson } from "./redux/selectedStationGeojsonSlice";
 
 export function Panel() {
   const dispatch = useDispatch();
@@ -65,7 +66,13 @@ export function Panel() {
               This is how far you could ride if we <strong>capped Citibike fares at $3</strong> for
               all rides under 45 minutes.
             </p>
-            <button className="button" onClick={() => dispatch(setStep(0))}>
+            <button
+              className="button"
+              onClick={() => {
+                dispatch(setStep(0));
+                dispatch(setSelectedStationGeojson(undefined));
+              }}
+            >
               Try another station
             </button>
           </>

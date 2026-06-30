@@ -3,7 +3,7 @@ import type { FeatureCollection, Polygon, MultiPolygon } from "geojson";
 
 export const isochroneApi = createApi({
   reducerPath: "isochroneApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "https://localhost:5001/" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:5001/", method: "POST" }),
   endpoints: (builder) => ({
     getIsochrone: builder.query<FeatureCollection<Polygon | MultiPolygon>, [number, number]>({
       query: (arg) => {

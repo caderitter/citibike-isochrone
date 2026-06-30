@@ -13,7 +13,7 @@ const initialState: SelectedStationGeojsonState = {
 };
 
 export const selectedStationGeojsonSlice = createSlice({
-  name: 'selectedStationGeojson',
+  name: "selectedStationGeojson",
   initialState,
   reducers: {
     setSelectedStationGeojson: (state, action: PayloadAction<SelectedStationGeojson>) => {

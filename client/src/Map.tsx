@@ -11,15 +11,52 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { Point, Feature } from "geojson";
 import bikePng from "./assets/icon-park-outline--bike.png";
-import { type MapLibreEvent } from "maplibre-gl";
+import { type MapLibreEvent, type SymbolLayerSpecification } from "maplibre-gl";
 import { clipAllContours } from "./geoHelpers";
-import { CITIBIKE_GEOJSON_STATION_ID_KEY, CITIBIKE_ICON_IMAGE, CITIBIKE_STATIONS_ICON_LAYER_ID, CITIBIKE_STATIONS_SOURCE_ID, CURRENT_PRICE_ISOCHRONE_LAYER_ID, CURRENT_PRICE_ISOCHRONE_SOURCE_ID, MAP_STYLE_URL, MAX_RIDE_TIME, PROPOSAL_PRICE_ISOCHRONE_LAYER_ID, PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID, RIDE_LENGTH_AT_SUBWAY_COST, SELECTED_STATION_ICON_LAYER_STYLE, SELECTED_STATION_SOURCE_ID, SHARED_ISOCHRONE_STYLE } from "./constants";
+import { MAX_RIDE_TIME, RIDE_LENGTH_AT_SUBWAY_COST } from "./constants";
 import bbox from "@turf/bbox";
 import type { RootState } from "./redux/store";
-import { citibikeStationsIconLayerStyleSelector, stationHullSelector, useGetCitibikeGeojsonQuery } from "./redux/citibikeGeojsonApi";
+import { stationHullSelector, useGetCitibikeGeojsonQuery } from "./redux/citibikeGeojsonApi";
 import { useLazyGetIsochroneQuery } from "./redux/isochroneApi";
-import { setHoverInfo } from "./redux/uiSlice";
+import { setHoverInfo, setStep } from "./redux/uiSlice";
 import { setSelectedStationGeojson } from "./redux/selectedStationGeojsonSlice";
+
+const CITIBIKE_ICON_IMAGE = "citibike-icon";
+
+const CITIBIKE_STATIONS_SOURCE_ID = "citibike-stations-source";
+const CITIBIKE_STATIONS_ICON_LAYER_ID = "citibike-stations-icon-layer";
+
+const SELECTED_STATION_SOURCE_ID = "selected-station-source";
+const SELECTED_STATION_ICON_LAYER_ID = "selected-station-icon-layer";
+
+const CITIBIKE_GEOJSON_STATION_ID_KEY = "station_id";
+
+const CURRENT_PRICE_ISOCHRONE_SOURCE_ID = "current-price-isochrone-source";
+const CURRENT_PRICE_ISOCHRONE_LAYER_ID = "current-price-isochrone-layer";
+
+const PROPOSAL_PRICE_ISOCHRONE_SOURCE_ID = "proposal-price-isochrone-source";
+const PROPOSAL_PRICE_ISOCHRONE_LAYER_ID = "proposal-price-isochrone-layer";
+
+const SELECTED_STATION_ICON_LAYER_STYLE: SymbolLayerSpecification = {
+  id: SELECTED_STATION_ICON_LAYER_ID,
+  source: SELECTED_STATION_SOURCE_ID,
+  type: "symbol",
+  layout: {
+    "icon-image": CITIBIKE_ICON_IMAGE,
+    "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.1, 20, 0.5],
+    "icon-allow-overlap": true,
+  },
+};
+
+const SHARED_ISOCHRONE_STYLE: Pick<FillLayerSpecification, "type" | "paint"> = {
+  type: "fill",
+  paint: {
+    "fill-color": ["get", "color"],
+    "fill-opacity": ["get", "opacity"],
+  },
+};
+
+const MAP_STYLE_URL = `https://api.maptiler.com/maps/dataviz-v4/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
 export function Map() {
   const dispatch = useDispatch();
@@ -29,8 +66,9 @@ export function Map() {
   const limitToStations = useSelector((state: RootState) => state.ui.limitToStations);
   const hoverInfo = useSelector((state: RootState) => state.ui.hoverInfo);
   const stationHull = useSelector(stationHullSelector);
-  const selectedStationGeojson = useSelector((state: RootState) => state.selectedStationGeojson.selectedStationGeojson);
-  const citibikeStationsIconLayerStyle = useSelector(citibikeStationsIconLayerStyleSelector);
+  const selectedStationGeojson = useSelector(
+    (state: RootState) => state.selectedStationGeojson.selectedStationGeojson,
+  );
 
   const { data: citibikeGeojson } = useGetCitibikeGeojsonQuery();
   const [fetchIsochrone, { isochroneGeojson }] = useLazyGetIsochroneQuery({
@@ -42,6 +80,21 @@ export function Map() {
         : undefined,
     }),
   });
+
+  const citibikeStationsIconLayerStyle: SymbolLayerSpecification = useMemo(
+    () => ({
+      id: CITIBIKE_STATIONS_ICON_LAYER_ID,
+      source: CITIBIKE_STATIONS_SOURCE_ID,
+      type: "symbol",
+      layout: {
+        "icon-image": CITIBIKE_ICON_IMAGE,
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.08, 20, 0.4],
+        "icon-allow-overlap": true,
+        visibility: selectedStationGeojson ? "none" : "visible",
+      },
+    }),
+    [selectedStationGeojson],
+  );
 
   const currentPriceIsochroneLayerStyle: FillLayerSpecification = useMemo(
     () => ({
@@ -92,14 +145,17 @@ export function Map() {
       if (feature) {
         fetchIsochrone([feature.geometry.coordinates[1], feature.geometry.coordinates[0]]);
 
-        dispatch(setSelectedStationGeojson({
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: feature.geometry.coordinates,
-          },
-          properties: { ...feature.properties },
-        }));
+        dispatch(
+          setSelectedStationGeojson({
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: feature.geometry.coordinates,
+            },
+            properties: { ...feature.properties },
+          }),
+        );
+        dispatch(setStep(1));
       }
     },
     [limitToStations],
@@ -168,11 +224,6 @@ export function Map() {
       );
     }
   }, [currentPriceIsochroneGeojson, step]);
-
-  // if we've gone back to step 0, clear the selected station
-  if (step === 0 && selectedStationGeojson) {
-    dispatch(setSelectedStationGeojson(undefined));
-  }
 
   return (
     <MaplibreMap
