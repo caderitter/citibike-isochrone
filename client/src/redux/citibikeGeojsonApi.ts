@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { FeatureCollection, Point } from "geojson";
-import { hullFromStations } from "../geoHelpers";
+import { concave } from "@turf/concave";
 
 export const citibikeGeojsonApi = createApi({
   reducerPath: "citibikeGeojsonApi",
@@ -17,7 +17,7 @@ export const stationHullSelector = createSelector(
   [citibikeGeojsonApi.endpoints.getCitibikeGeojson.select()],
   ({ data }) => {
     if (data) {
-      return hullFromStations(data);
+      return concave(data, { units: "meters", maxEdge: 5000 });
     }
   },
 );

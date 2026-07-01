@@ -1,14 +1,6 @@
-import concave from "@turf/concave";
-import { point, featureCollection } from "@turf/helpers";
+import { featureCollection } from "@turf/helpers";
 import intersect from "@turf/intersect";
 import type { FeatureCollection, Polygon, MultiPolygon, Point, Feature } from "geojson";
-
-export function hullFromStations(stations: FeatureCollection<Point>) {
-  const points = stations.features.map(({ geometry }) =>
-    point([geometry.coordinates[0], geometry.coordinates[1]]),
-  );
-  return concave(featureCollection(points), { units: "meters", maxEdge: 5000 });
-}
 
 export function clipIsochroneToStationArea(
   isochrone: Feature<Polygon | MultiPolygon>,
